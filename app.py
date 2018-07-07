@@ -88,6 +88,7 @@ def handle_message(event):
     print("event.message.text:", event.message.text)
 
     global query_user
+    print(query_user)
 
     if event.source.user_id in query_user:
         msg = query_attendee(event.message.text)
