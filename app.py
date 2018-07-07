@@ -314,6 +314,8 @@ def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
 
+    global query_step
+
     if event.message.text == "彰化-結婚宴地點":
         loc = LocationSendMessage(title='結婚婚宴會場', address='花壇全國麗園大飯店',
                                   latitude=24.023089, longitude=120.555030)
