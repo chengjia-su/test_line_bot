@@ -54,20 +54,18 @@ def create_attendee_list():
     with open("list.dat", "r") as file:
         for line in file:
             data = line.split(";")
-            new_rec = {"data[0]": {"loc": data[1],
+            new_rec = {data[0]: {"loc": data[1],
                                    "num_att": data[2],
                                    "food": data[3],
                                    "chair": data[4]}
                       }
             attend_dict.update(new_rec)
-    print(attend_dict)
     return attend_dict
 
 def query_attendee(name):
     reply_msg = ""
     attend_dict = create_attendee_list()
     for key, val in attend_dict.items():
-        print(key)
         if name in key:
             res = attend_dict[key]
             reply_msg = ("名字: {name}\n"
