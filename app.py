@@ -418,7 +418,7 @@ def handle_message(event):
                 ]
             )
         )
-        line_bot_api.reply_message(event.reply_token, buttons_template)
+        line_bot_api.reply_message(event.reply_token, confirm_template)
         return 0
 
     if query_step == 1:
