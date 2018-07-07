@@ -398,7 +398,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, confirm_template)
         return 0
 
-    if "日期" in event.message.text || "時間" in event.message.text:
+    if "日期" in event.message.text or "時間" in event.message.text:
         confirm_template = TemplateSendMessage(
             alt_text='婚宴時間 template',
             template=ConfirmTemplate(
