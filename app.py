@@ -60,12 +60,14 @@ def create_attendee_list():
                                    "chair": data[4]}
                       }
             attend_dict.update(new_rec)
+    print(attend_dict)
     return attend_dict
 
 def query_attendee(name):
     reply_msg = ""
     attend_dict = create_attendee_list()
     for key, val in attend_dict.items():
+        print(key)
         if name in key:
             res = attend_dict[key]
             reply_msg = ("名字: {name}\n"
