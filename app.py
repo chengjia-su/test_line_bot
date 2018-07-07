@@ -75,21 +75,6 @@ def eyny_movie():
     return content
 
 
-def apple_news():
-    target_url = 'https://tw.appledaily.com/new/realtime'
-    print('Start parsing appleNews....')
-    rs = requests.session()
-    res = rs.get(target_url, verify=False)
-    soup = BeautifulSoup(res.text, 'html.parser')
-    content = ""
-    for index, data in enumerate(soup.select('.rtddt a'), 0):
-        if index == 5:
-            return content
-        link = data['href']
-        content += '{}\n\n'.format(link)
-    return content
-
-
 def get_page_number(content):
     start_index = content.find('index')
     end_index = content.find('.html')
@@ -293,17 +278,13 @@ def panx():
 def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
-    if event.message.text == "eyny":
-        content = eyny_movie()
+
+    if "地點" in event.message.text:
+        loc = LocationSendMessage(title='結婚婚宴會場', address='花壇全國麗園大飯店',
+                                  latitude=24.023089, longitude=120.555030)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=content))
-        return 0
-    if event.message.text == "蘋果即時新聞":
-        content = apple_news()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
+            loc)
         return 0
     if event.message.text == "PTT 表特版 近期大於 10 推的文章":
         content = ptt_beauty()
@@ -506,19 +487,19 @@ def handle_message(event):
         template=ButtonsTemplate(
             title='選擇服務',
             text='請選擇',
-            thumbnail_image_url='https://i.imgur.com/kzi5kKy.jpg',
+            thumbnail_image_url='https://i.imgur.com/CVVtdN0.jpg',
             actions=[
                 MessageTemplateAction(
-                    label='開始玩',
-                    text='開始玩'
+                    label='婚宴地點',
+                    text='婚宴地點'
                 ),
                 URITemplateAction(
-                    label='影片介紹 阿肥bot',
-                    uri='https://youtu.be/1IxtWgWxtlE'
+                    label='婚宴日期時間',
+                    text='婚宴地點'
                 ),
                 URITemplateAction(
-                    label='如何建立自己的 Line Bot',
-                    uri='https://github.com/twtrubiks/line-bot-tutorial'
+                    label='報名',
+                    uri='https://goo.gl/forms/wBVMcLs93DnOh6W13'
                 ),
                 URITemplateAction(
                     label='聯絡作者',
