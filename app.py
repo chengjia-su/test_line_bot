@@ -3,6 +3,7 @@ import re
 import random
 import configparser
 import os
+import os.path
 from bs4 import BeautifulSoup
 from flask import Flask, request, abort
 from imgurpython import ImgurClient
@@ -26,7 +27,6 @@ client_secret = config['imgur_api']['Client_Secret']
 album_id = config['imgur_api']['Album_ID']
 API_Get_Image = config['other_api']['API_Get_Image']
 
-query_user = []
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -87,14 +87,12 @@ def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
 
-    global query_user
-    print(query_user)
 
-    if event.source.user_id in query_user:
+    if os.path.exists(event.source.user_id):
         msg = query_attendee(event.message.text)
         text_reply = TextSendMessage(text=msg)
         line_bot_api.reply_message(event.reply_token, text_reply)
-        query_user.remove(event.source.user_id)
+        os.remove(event.source.user_id)
         return 0
 
     if event.message.text == "彰化-結婚宴地點":
@@ -132,7 +130,8 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             reply_msg)
-        query_user.append(event.source.user_id)
+        with open(event.source.user_id, 'a') as file:
+            pass
         return 0
 
     if event.message.text == "來張 imgur 正妹圖片":
