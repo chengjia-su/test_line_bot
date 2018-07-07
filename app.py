@@ -26,6 +26,8 @@ client_secret = config['imgur_api']['Client_Secret']
 album_id = config['imgur_api']['Album_ID']
 API_Get_Image = config['other_api']['API_Get_Image']
 
+query_step = 0
+
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -46,6 +48,39 @@ def callback():
 
     return 'ok'
 
+
+def create_attendee_list():
+    attend_dict = {}
+    with open("list.dat", "r") as file:
+        for line in file:
+            data = line.split(";")
+            new_rec = {"data[0]": {"loc": data[1],
+                                   "num_att": data[2],
+                                   "food": data[3],
+                                   "chair": data[4]}
+                      }
+            attend_dict.update(new_rec)
+    return attend_dict
+
+def query_attendee(name):
+    reply_msg = ""
+    attend_dict = create_attendee_list()
+    for key, val in attend_dict.items:
+        if name in key:
+            res = attend_dict[key]
+            reply_msg = ("名字: {name}\n"
+                         "場次: {loc}\n"
+                         "出席人數: {num}\n"
+                         "葷素: {food}\n"
+                         "嬰兒座椅需求: {ch}").format(name=key,
+                                                     loc=res["loc"],
+                                                     num=res["num_att"],
+                                                     food=res["food"],
+                                                     ch=res["chair"])
+            break
+    if reply_msg == "":
+        reply_msg = "無法找到您的報名資訊, 請與新郎政嘉聯繫"
+    return reply_msg
 
 def pattern_mega(text):
     patterns = [
@@ -279,19 +314,44 @@ def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
 
-    if "地點" in event.message.text:
+    if event.message.text == "彰化-結婚宴地點":
         loc = LocationSendMessage(title='結婚婚宴會場', address='花壇全國麗園大飯店',
                                   latitude=24.023089, longitude=120.555030)
         line_bot_api.reply_message(
             event.reply_token,
             loc)
         return 0
-    if event.message.text == "PTT 表特版 近期大於 10 推的文章":
-        content = ptt_beauty()
+
+    if event.message.text == "宜蘭-訂婚宴地點":
+        loc = LocationSendMessage(title='訂婚婚宴會場', address='羅東金門餐廳',
+                                  latitude=24.678694, longitude=121.763427)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=content))
+            loc)
         return 0
+
+    if event.message.text == "彰化-結婚宴時間":
+        reply_msg = TextSendMessage(text="2018/11/25 (日) 開桌時間未定")
+        line_bot_api.reply_message(
+            event.reply_token,
+            reply_msg)
+        return 0
+
+    if event.message.text == "宜蘭-訂婚宴時間":
+        reply_msg = TextSendMessage(text="2018/10/10 (日) 開桌時間未定")
+        line_bot_api.reply_message(
+            event.reply_token,
+            reply_msg)
+        return 0
+
+    if event.message.text == "查詢報名結果":
+        reply_msg = TextSendMessage(text="請輸入您的名字")
+        line_bot_api.reply_message(
+            event.reply_token,
+            reply_msg)
+        query_step = 1
+        return 0
+
     if event.message.text == "來張 imgur 正妹圖片":
         client = ImgurClient(client_id, client_secret)
         images = client.get_album_images(album_id)
@@ -304,6 +364,7 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token, image_message)
         return 0
+
     if event.message.text == "隨便來張正妹圖片":
         image = requests.get(API_Get_Image)
         url = image.json().get('Url')
@@ -314,172 +375,55 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token, image_message)
         return 0
-    if event.message.text == "近期熱門廢文":
-        content = ptt_hot()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
-        return 0
-    if event.message.text == "即時廢文":
-        content = ptt_gossiping()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
-        return 0
-    if event.message.text == "近期上映電影":
-        content = movie()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
-        return 0
-    if event.message.text == "觸電網-youtube":
-        target_url = 'https://www.youtube.com/user/truemovie1/videos'
-        rs = requests.session()
-        res = rs.get(target_url, verify=False)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        seqs = ['https://www.youtube.com{}'.format(data.find('a')['href']) for data in soup.select('.yt-lockup-title')]
-        line_bot_api.reply_message(
-            event.reply_token, [
-                TextSendMessage(text=seqs[random.randint(0, len(seqs) - 1)]),
-                TextSendMessage(text=seqs[random.randint(0, len(seqs) - 1)])
-            ])
-        return 0
-    if event.message.text == "科技新報":
-        content = technews()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
-        return 0
-    if event.message.text == "PanX泛科技":
-        content = panx()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
-        return 0
-    if event.message.text == "開始玩":
-        buttons_template = TemplateSendMessage(
-            alt_text='開始玩 template',
-            template=ButtonsTemplate(
-                title='選擇服務',
+
+
+    if "地點" in event.message.text:
+        confirm_template = TemplateSendMessage(
+            alt_text='婚宴地點 template',
+            template=ConfirmTemplate(
+                title='選擇場次',
                 text='請選擇',
-                thumbnail_image_url='https://i.imgur.com/xQF5dZT.jpg',
                 actions=[
                     MessageTemplateAction(
-                        label='新聞',
-                        text='新聞'
+                        label='宜蘭-訂婚宴地點',
+                        text='宜蘭-訂婚宴地點'
                     ),
                     MessageTemplateAction(
-                        label='電影',
-                        text='電影'
+                        label='彰化-結婚宴地點',
+                        text='彰化-結婚宴地點'
+                    )
+                ]
+            )
+        )
+        line_bot_api.reply_message(event.reply_token, confirm_template)
+        return 0
+
+    if "日期" in event.message.text || "時間" in event.message.text:
+        confirm_template = TemplateSendMessage(
+            alt_text='婚宴時間 template',
+            template=ConfirmTemplate(
+                title='選擇場次',
+                text='請選擇',
+                actions=[
+                    MessageTemplateAction(
+                        label='宜蘭-訂婚宴時間',
+                        text='宜蘭-訂婚宴時間'
                     ),
                     MessageTemplateAction(
-                        label='看廢文',
-                        text='看廢文'
-                    ),
-                    MessageTemplateAction(
-                        label='正妹',
-                        text='正妹'
+                        label='彰化-結婚宴時間',
+                        text='彰化-結婚宴時間'
                     )
                 ]
             )
         )
         line_bot_api.reply_message(event.reply_token, buttons_template)
         return 0
-    if event.message.text == "新聞":
-        buttons_template = TemplateSendMessage(
-            alt_text='新聞 template',
-            template=ButtonsTemplate(
-                title='新聞類型',
-                text='請選擇',
-                thumbnail_image_url='https://i.imgur.com/vkqbLnz.png',
-                actions=[
-                    MessageTemplateAction(
-                        label='蘋果即時新聞',
-                        text='蘋果即時新聞'
-                    ),
-                    MessageTemplateAction(
-                        label='科技新報',
-                        text='科技新報'
-                    ),
-                    MessageTemplateAction(
-                        label='PanX泛科技',
-                        text='PanX泛科技'
-                    )
-                ]
-            )
-        )
-        line_bot_api.reply_message(event.reply_token, buttons_template)
-        return 0
-    if event.message.text == "電影":
-        buttons_template = TemplateSendMessage(
-            alt_text='電影 template',
-            template=ButtonsTemplate(
-                title='服務類型',
-                text='請選擇',
-                thumbnail_image_url='https://i.imgur.com/sbOTJt4.png',
-                actions=[
-                    MessageTemplateAction(
-                        label='近期上映電影',
-                        text='近期上映電影'
-                    ),
-                    MessageTemplateAction(
-                        label='eyny',
-                        text='eyny'
-                    ),
-                    MessageTemplateAction(
-                        label='觸電網-youtube',
-                        text='觸電網-youtube'
-                    )
-                ]
-            )
-        )
-        line_bot_api.reply_message(event.reply_token, buttons_template)
-        return 0
-    if event.message.text == "看廢文":
-        buttons_template = TemplateSendMessage(
-            alt_text='看廢文 template',
-            template=ButtonsTemplate(
-                title='你媽知道你在看廢文嗎',
-                text='請選擇',
-                thumbnail_image_url='https://i.imgur.com/ocmxAdS.jpg',
-                actions=[
-                    MessageTemplateAction(
-                        label='近期熱門廢文',
-                        text='近期熱門廢文'
-                    ),
-                    MessageTemplateAction(
-                        label='即時廢文',
-                        text='即時廢文'
-                    )
-                ]
-            )
-        )
-        line_bot_api.reply_message(event.reply_token, buttons_template)
-        return 0
-    if event.message.text == "正妹":
-        buttons_template = TemplateSendMessage(
-            alt_text='正妹 template',
-            template=ButtonsTemplate(
-                title='選擇服務',
-                text='請選擇',
-                thumbnail_image_url='https://i.imgur.com/qKkE2bj.jpg',
-                actions=[
-                    MessageTemplateAction(
-                        label='PTT 表特版 近期大於 10 推的文章',
-                        text='PTT 表特版 近期大於 10 推的文章'
-                    ),
-                    MessageTemplateAction(
-                        label='來張 imgur 正妹圖片',
-                        text='來張 imgur 正妹圖片'
-                    ),
-                    MessageTemplateAction(
-                        label='隨便來張正妹圖片',
-                        text='隨便來張正妹圖片'
-                    )
-                ]
-            )
-        )
-        line_bot_api.reply_message(event.reply_token, buttons_template)
+
+    if query_step == 1:
+        msg = query_attendee(event.message.text)
+        text_reply = TextSendMessage(text=msg)
+        line_bot_api.reply_message(event.reply_token, text_reply)
+        query_step = 0
         return 0
 
     buttons_template = TemplateSendMessage(
@@ -496,6 +440,10 @@ def handle_message(event):
                 MessageTemplateAction(
                     label='婚宴日期時間',
                     text='婚宴日期時間'
+                ),
+                MessageTemplateAction(
+                    label='查詢報名結果',
+                    text='查詢報名結果'
                 ),
                 URITemplateAction(
                     label='報名',
