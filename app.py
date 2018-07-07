@@ -65,7 +65,7 @@ def create_attendee_list():
 def query_attendee(name):
     reply_msg = ""
     attend_dict = create_attendee_list()
-    for key, val in attend_dict.items:
+    for key, val in attend_dict.items():
         if name in key:
             res = attend_dict[key]
             reply_msg = ("名字: {name}\n"
