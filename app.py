@@ -493,9 +493,9 @@ def handle_message(event):
                     label='婚宴地點',
                     text='婚宴地點'
                 ),
-                URITemplateAction(
+                MessageTemplateAction(
                     label='婚宴日期時間',
-                    text='婚宴地點'
+                    text='婚宴日期時間'
                 ),
                 URITemplateAction(
                     label='報名',
