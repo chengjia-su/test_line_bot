@@ -450,10 +450,6 @@ def handle_message(event):
                 URITemplateAction(
                     label='報名',
                     uri='https://goo.gl/forms/wBVMcLs93DnOh6W13'
-                ),
-                URITemplateAction(
-                    label='聯絡作者',
-                    uri='https://www.facebook.com/TWTRubiks?ref=bookmarks'
                 )
             ]
         )
