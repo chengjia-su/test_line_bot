@@ -18,8 +18,8 @@ app = Flask(__name__)
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-line_bot_api = LineBotApi(config['line_bot']['Channel_Access_Token'])
-handler = WebhookHandler(config['line_bot']['Channel_Secret'])
+line_bot_api = LineBotApi(os.environ.get("ACCESS_TOKEN"))
+handler = WebhookHandler(os.environ.get("SECRET"))
 client_id = config['imgur_api']['Client_ID']
 client_secret = config['imgur_api']['Client_Secret']
 album_id = config['imgur_api']['Album_ID']
@@ -40,7 +40,6 @@ def callback():
     try:
         handler.handle(body, signature)
     except InvalidSignatureError as e:
-        print(e)
         app.logger.error(e)
         abort(400)
 
