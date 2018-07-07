@@ -79,7 +79,7 @@ def query_attendee(name):
                                                      ch=res["chair"])
             break
     if reply_msg == "":
-        reply_msg = "無法找到您的報名資訊, 請與新郎政嘉聯繫"
+        reply_msg = "無法找到您的報名資訊, 請與新郎政嘉聯繫.\n若您剛完成報名, 請通知新郎更新報名資訊."
     return reply_msg
 
 def pattern_mega(text):
@@ -316,6 +316,13 @@ def handle_message(event):
 
     global query_step
 
+    if query_step == 1:
+        msg = query_attendee(event.message.text)
+        text_reply = TextSendMessage(text=msg)
+        line_bot_api.reply_message(event.reply_token, text_reply)
+        query_step = 0
+        return 0
+
     if event.message.text == "彰化-結婚宴地點":
         loc = LocationSendMessage(title='結婚婚宴會場', address='花壇全國麗園大飯店',
                                   latitude=24.023089, longitude=120.555030)
@@ -347,11 +354,11 @@ def handle_message(event):
         return 0
 
     if event.message.text == "查詢報名結果":
+        query_step = 1
         reply_msg = TextSendMessage(text="請輸入您的名字")
         line_bot_api.reply_message(
             event.reply_token,
             reply_msg)
-        query_step = 1
         return 0
 
     if event.message.text == "來張 imgur 正妹圖片":
@@ -419,13 +426,6 @@ def handle_message(event):
             )
         )
         line_bot_api.reply_message(event.reply_token, confirm_template)
-        return 0
-
-    if query_step == 1:
-        msg = query_attendee(event.message.text)
-        text_reply = TextSendMessage(text=msg)
-        line_bot_api.reply_message(event.reply_token, text_reply)
-        query_step = 0
         return 0
 
     buttons_template = TemplateSendMessage(
