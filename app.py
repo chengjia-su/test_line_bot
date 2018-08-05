@@ -55,7 +55,7 @@ def create_attendee_list():
     # with open("list.dat", "r") as file:
     with urlopen(target_url) as file:
         for line in file:
-            data = line.split(";")
+            data = line.decode('utf-8').split(";")
             new_rec = {data[0]: {"loc": data[1],
                                    "num_att": data[2],
                                    "food": data[3],
