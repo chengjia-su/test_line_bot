@@ -51,16 +51,15 @@ def callback():
 
 def create_attendee_list():
     attend_dict = {}
-    target_url = "https://github.com/chengjia-su/curtis_line_bot/blob/master/list.dat"
+    target_url = "https://raw.githubusercontent.com/chengjia-su/curtis_line_bot/master/list.dat"
     # with open("list.dat", "r") as file:
     with urlopen(target_url) as file:
         for line in file:
-            app.logger.info("read from file: " + line.decode('utf-8'))
             data = line.decode('utf-8').split(";")
             new_rec = {data[0]: {"loc": data[1],
-                                   "num_att": data[2],
-                                   "food": data[3],
-                                   "chair": data[4]}
+                                 "num_att": data[2],
+                                 "food": data[3],
+                                 "chair": data[4]}
                       }
             attend_dict.update(new_rec)
     return attend_dict
