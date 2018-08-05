@@ -4,7 +4,7 @@ import random
 import configparser
 import os
 import os.path
-import urllib2
+from urllib.request import urlopen
 from bs4 import BeautifulSoup
 from flask import Flask, request, abort
 from imgurpython import ImgurClient
@@ -53,7 +53,7 @@ def create_attendee_list():
     attend_dict = {}
     target_url = "https://github.com/chengjia-su/curtis_line_bot/blob/master/list.dat"
     # with open("list.dat", "r") as file:
-    with urllib2.urlopen(target_url) as file:
+    with urlopen(target_url) as file:
         for line in file:
             data = line.split(";")
             new_rec = {data[0]: {"loc": data[1],
