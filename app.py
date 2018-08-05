@@ -55,12 +55,16 @@ def create_attendee_list():
     # with open("list.dat", "r") as file:
     with urlopen(target_url) as file:
         for line in file:
-            data = line.decode('utf-8').split(";")
-            new_rec = {data[0]: {"loc": data[1],
-                                 "num_att": data[2],
-                                 "food": data[3],
-                                 "chair": data[4]}
-                      }
+            try:
+                data = line.decode('utf-8').split(";")
+                new_rec = {data[0]: {"loc": data[1],
+                                     "num_att": data[2],
+                                     "food": data[3],
+                                     "chair": data[4]}
+                          }
+            except:
+                print("Cannot Parser %s" + line.decode('utf-8'))
+                return attend_dict
             attend_dict.update(new_rec)
     return attend_dict
 
