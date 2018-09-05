@@ -119,14 +119,14 @@ def handle_message(event):
         return 0
 
     if event.message.text == "彰化-結婚宴時間":
-        reply_msg = TextSendMessage(text="2018/11/25 (日) 開桌時間未定")
+        reply_msg = TextSendMessage(text="2018/11/25 (日) 中午12:00入席")
         line_bot_api.reply_message(
             event.reply_token,
             reply_msg)
         return 0
 
     if event.message.text == "宜蘭-訂婚宴時間":
-        reply_msg = TextSendMessage(text="2018/10/10 (日) 開桌時間未定")
+        reply_msg = TextSendMessage(text="2018/10/10 (日) 中午12:00入席")
         line_bot_api.reply_message(
             event.reply_token,
             reply_msg)
@@ -139,30 +139,6 @@ def handle_message(event):
             reply_msg)
         with open(event.source.user_id, 'a') as file:
             pass
-        return 0
-
-    if event.message.text == "來張 imgur 正妹圖片":
-        client = ImgurClient(client_id, client_secret)
-        images = client.get_album_images(album_id)
-        index = random.randint(0, len(images) - 1)
-        url = images[index].link
-        image_message = ImageSendMessage(
-            original_content_url=url,
-            preview_image_url=url
-        )
-        line_bot_api.reply_message(
-            event.reply_token, image_message)
-        return 0
-
-    if event.message.text == "隨便來張正妹圖片":
-        image = requests.get(API_Get_Image)
-        url = image.json().get('Url')
-        image_message = ImageSendMessage(
-            original_content_url=url,
-            preview_image_url=url
-        )
-        line_bot_api.reply_message(
-            event.reply_token, image_message)
         return 0
 
 
@@ -211,8 +187,8 @@ def handle_message(event):
     buttons_template = TemplateSendMessage(
         alt_text='目錄 template',
         template=ButtonsTemplate(
-            title='選擇服務',
-            text='請選擇',
+            title='下列為我所提供的功能',
+            text='請點擊選擇',
             thumbnail_image_url='https://i.imgur.com/CVVtdN0.jpg',
             actions=[
                 MessageTemplateAction(
