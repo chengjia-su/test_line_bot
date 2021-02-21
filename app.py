@@ -50,11 +50,14 @@ def callback():
     return 'ok'
     
 def query_car(number):
+    ret = []
     db_url = os.environ['DATABASE_URL']
     conn = psycopg2.connect(db_url, sslmode='require')
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
-    ret = cursor.fetchall()
+    all_data = cursor.fetchall()
+    for data in all_data:
+        ret.append(data[0])
     conn.close()
 
     return ret
@@ -71,10 +74,10 @@ def register_car(number, name):
     cursor.execute(create_table)
     conn.commit()
 
-    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
-    all_names = cursor.fetchall()
-    print(all_names)
-    if name in all_names:
+    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
+    all_data = cursor.fetchall()
+    for data in all_data:
+        if name == data[0]:
         ret = False
     else:
         insert_dat = "INSERT INTO mzd_car (lice, name) VALUES ({}, '{}');".format(number, name)
@@ -113,8 +116,8 @@ def handle_message(event):
     if req_msg.startswith("??") and req_msg[2:6].isnumeric():
         number = req_msg[2:6]
         ret = query_car(number)
-        names = ret.join("\n")
         if len(ret) > 0:
+            names = ret.join("\n")
             reply_msg = TextSendMessage(text="查詢車牌【{}】:\n{}".format(number, names))
         else:
             reply_msg = TextSendMessage(text="查詢車牌【{}】:尚無車主註冊".format(number))
