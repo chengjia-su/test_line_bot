@@ -120,13 +120,16 @@ def handle_message(event):
     req_msg = str(event.message.text)
         
     if req_msg.startswith("++") and req_msg[2:6].isnumeric():
-        number = req_msg[2:6]
-        name = req_msg.split(":")[-1]
-        ret = register_car(number, name)
-        if ret:
-            reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{}".format(number, name))
+        if ":" not in req_msg:
+            reply_msg = TextSendMessage(text="註冊車牌格式錯誤. 格式應為:\n++[車號數字四位數]:[車主名]\n例如 ++1234:彰化金城武")
         else:
-            reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車主{}已存在".format(number, name))
+            number = req_msg[2:6]
+            name = req_msg.split(":")[-1]
+            ret = register_car(number, name)
+            if ret:
+                reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{}".format(number, name))
+            else:
+                reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車主{}已存在".format(number, name))
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
@@ -142,13 +145,16 @@ def handle_message(event):
         return 0
 
     if req_msg.startswith("--") and req_msg[2:6].isnumeric():
-        number = req_msg[2:6]
-        name = req_msg.split(":")[-1]
-        ret = unregister_car(number, name)
-        if ret:
-            reply_msg = TextSendMessage(text="車牌【{}: {}】刪除成功".format(number, name))
+        if ":" not in req_msg:
+            reply_msg = TextSendMessage(text="刪除車牌格式錯誤. 格式應為:\n--[車號數字四位數]:[車主名]\n例如 --1234:彰化金城武")
         else:
-            reply_msg = TextSendMessage(text="車牌【{}: {}】刪除失敗, 找不到註冊資料".format(number, name))
+            number = req_msg[2:6]
+            name = req_msg.split(":")[-1]
+            ret = unregister_car(number, name)
+            if ret:
+                reply_msg = TextSendMessage(text="車牌【{}: {}】刪除成功".format(number, name))
+            else:
+                reply_msg = TextSendMessage(text="車牌【{}: {}】刪除失敗, 找不到註冊資料".format(number, name))
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
         
