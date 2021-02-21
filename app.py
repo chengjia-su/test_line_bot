@@ -119,7 +119,7 @@ def handle_message(event):
         number = req_msg[2:6]
         ret = query_car(number)
         if len(ret) > 0:
-            names = ret.join("\n")
+            names = "\n".join(ret)
             reply_msg = TextSendMessage(text="查詢車牌【{}】:\n{}".format(number, names))
         else:
             reply_msg = TextSendMessage(text="查詢車牌【{}】:尚無車主註冊".format(number))
