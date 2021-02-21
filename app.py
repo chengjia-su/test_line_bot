@@ -54,8 +54,10 @@ def query_car(number):
     conn = psycopg2.connect(db_url, sslmode='require')
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
-    cursor.fetchall()
+    ret = cursor.fetchall()
     conn.close()
+
+    return ret
 
 def register_car(number, name):
     db_url = os.environ['DATABASE_URL']
@@ -71,6 +73,7 @@ def register_car(number, name):
 
     cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
     all_names = cursor.fetchall()
+    print(all_names)
     if name in all_names:
         ret = False
     else:
