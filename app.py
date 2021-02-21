@@ -74,7 +74,7 @@ def register_car(number, name):
     if name in all_names:
         ret = False
     else:
-        insert_dat = "INSERT INTO mzd_car (lice, name) VALUES ({}, {});".format(number, name)
+        insert_dat = "INSERT INTO mzd_car (lice, name) VALUES ({}, '{}');".format(number, name)
         cursor.execute(insert_dat)
         conn.commit()
         ret = True
