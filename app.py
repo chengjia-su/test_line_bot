@@ -47,172 +47,77 @@ def callback():
         abort(400)
 
     return 'ok'
+    
+def query_car(number):
+    db_url = os.environ['DATABASE_URL']
+    conn = psycopg2.connect(db_url, sslmode='require')
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
+    cursor.fetchall()
+    conn.close()
 
+def register_car(number, name):
+    db_url = os.environ['DATABASE_URL']
+    conn = psycopg2.connect(db_url, sslmode='require')
+    cursor = conn.cursor()
+    create_table = '''CREATE TABLE IF NOT EXISTS mzd_car(
+        id serial PRIMARY KEY,
+        lice INT NOT NULL,
+        name VARCHAR (255)
+    );'''
+    cursor.execute(create_table)
+    conn.commit()
 
-def create_attendee_list():
-    attend_dict = {}
-    target_url = "https://raw.githubusercontent.com/chengjia-su/curtis_line_bot/master/list.dat"
-    # with open("list.dat", "r") as file:
-    with urlopen(target_url) as file:
-        for line in file:
-            try:
-                data = line.decode('utf-8').split(";")
-                new_rec = {data[0]: {"loc": data[1],
-                                     "num_att": data[2],
-                                     "food": data[3],
-                                     "chair": data[4]}
-                          }
-            except:
-                print("Cannot Parser %s" + line.decode('utf-8'))
-                return attend_dict
-            attend_dict.update(new_rec)
-    return attend_dict
+    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
+    all_names = cursor.fetchall()
+    if name in all_names:
+        ret = False
+    else:
+        insert_dat = "INSERT INTO mzd_car (lice, name) VALUES ({}, {});".format(number, name)
+        cursor.execute(insert_dat)
+        conn.commit()
+        ret = True
+    cursor.close()
+    conn.close()
 
-def query_attendee(name):
-    reply_msg = ""
-    attend_dict = create_attendee_list()
-    for key, val in attend_dict.items():
-        if name in key:
-            res = attend_dict[key]
-            reply_msg = ("名字: {name}\n"
-                         "場次: {loc}\n"
-                         "出席人數: {num}\n"
-                         "葷素: {food}\n"
-                         "嬰兒座椅需求: {ch}").format(name=key,
-                                                     loc=res["loc"],
-                                                     num=res["num_att"],
-                                                     food=res["food"],
-                                                     ch=res["chair"])
-            break
-    if reply_msg == "":
-        reply_msg = "無法找到您的報名資訊, 請與新郎政嘉聯繫.\n若您剛完成報名, 請通知新郎更新報名資訊."
-    return reply_msg
-
+    return ret
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
 
-
-    if os.path.exists(event.source.user_id):
-        msg = query_attendee(event.message.text)
-        text_reply = TextSendMessage(text=msg)
-        line_bot_api.reply_message(event.reply_token, text_reply)
-        os.remove(event.source.user_id)
+    req_msg = str(event.message.text)
+    if event.source.type == "group":
+        print("msg from group, ID: " + event.source.groupId)
+        profile = line_bot_api.get_profile(event.source.user_id)
+        reply_msg = TextSendMessage(text=str(profile.display_name))
+        line_bot_api.reply_message(event.reply_token, reply_msg)
+        return 0
+        
+    if req_msg.startswith("++") and req_msg[2:6].isnumeric():
+        number = req_msg[2:6]
+        name = req_msg.split(":")[-1]
+        ret = register_car(number, name)
+        if ret:
+            reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{}".format(number, name))
+        else:
+            reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車主{}已存在".format(number, name))
+        line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
-    if event.message.text == "彰化-結婚宴地點":
-        loc = LocationSendMessage(title='結婚婚宴會場', address='花壇全國麗園大飯店',
-                                  latitude=24.023089, longitude=120.555030)
-        line_bot_api.reply_message(
-            event.reply_token,
-            loc)
+    if req_msg.startswith("??") and req_msg[2:6].isnumeric():
+        number = req_msg[2:6]
+        ret = query_car(number)
+        names = ret.join("\n")
+        if len(ret) > 0:
+            reply_msg = TextSendMessage(text="查詢車牌【{}】:\n{}".format(number, names))
+        else:
+            reply_msg = TextSendMessage(text="查詢車牌【{}】:尚無車主註冊".format(number))
+        line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
-    if event.message.text == "宜蘭-訂婚宴地點":
-        loc = LocationSendMessage(title='訂婚婚宴會場', address='羅東金門餐廳',
-                                  latitude=24.678694, longitude=121.763427)
-        line_bot_api.reply_message(
-            event.reply_token,
-            loc)
-        return 0
-
-    if event.message.text == "彰化-結婚宴時間":
-        reply_msg = TextSendMessage(text="2018/11/25 (日) 中午12:00入席")
-        line_bot_api.reply_message(
-            event.reply_token,
-            reply_msg)
-        return 0
-
-    if event.message.text == "宜蘭-訂婚宴時間":
-        reply_msg = TextSendMessage(text="2018/10/10 (日) 中午12:00入席")
-        line_bot_api.reply_message(
-            event.reply_token,
-            reply_msg)
-        return 0
-
-    if event.message.text == "查詢報名結果":
-        reply_msg = TextSendMessage(text="請輸入您的名字查詢")
-        line_bot_api.reply_message(
-            event.reply_token,
-            reply_msg)
-        with open(event.source.user_id, 'a') as file:
-            pass
-        return 0
-
-
-    if "地點" in event.message.text:
-        confirm_template = TemplateSendMessage(
-            alt_text='婚宴地點 template',
-            template=ConfirmTemplate(
-                title='選擇場次',
-                text='請選擇',
-                actions=[
-                    MessageTemplateAction(
-                        label='宜蘭-訂婚宴地點',
-                        text='宜蘭-訂婚宴地點'
-                    ),
-                    MessageTemplateAction(
-                        label='彰化-結婚宴地點',
-                        text='彰化-結婚宴地點'
-                    )
-                ]
-            )
-        )
-        line_bot_api.reply_message(event.reply_token, confirm_template)
-        return 0
-
-    if "日期" in event.message.text or "時間" in event.message.text:
-        confirm_template = TemplateSendMessage(
-            alt_text='婚宴時間 template',
-            template=ConfirmTemplate(
-                title='選擇場次',
-                text='請選擇',
-                actions=[
-                    MessageTemplateAction(
-                        label='宜蘭-訂婚宴時間',
-                        text='宜蘭-訂婚宴時間'
-                    ),
-                    MessageTemplateAction(
-                        label='彰化-結婚宴時間',
-                        text='彰化-結婚宴時間'
-                    )
-                ]
-            )
-        )
-        line_bot_api.reply_message(event.reply_token, confirm_template)
-        return 0
-
-    buttons_template = TemplateSendMessage(
-        alt_text='目錄 template',
-        template=ButtonsTemplate(
-            title='下列為我所提供的功能',
-            text='請點擊選擇',
-            thumbnail_image_url='https://i.imgur.com/CVVtdN0.jpg',
-            actions=[
-                MessageTemplateAction(
-                    label='婚宴地點',
-                    text='婚宴地點'
-                ),
-                MessageTemplateAction(
-                    label='婚宴日期時間',
-                    text='婚宴日期時間'
-                ),
-                MessageTemplateAction(
-                    label='查詢報名結果',
-                    text='查詢報名結果'
-                ),
-                URITemplateAction(
-                    label='報名',
-                    uri='https://goo.gl/forms/wBVMcLs93DnOh6W13'
-                )
-            ]
-        )
-    )
-    line_bot_api.reply_message(event.reply_token, buttons_template)
-
-
+"""
 @handler.add(MessageEvent, message=StickerMessage)
 def handle_sticker_message(event):
     print("package_id:", event.message.package_id)
@@ -231,7 +136,7 @@ def handle_sticker_message(event):
     line_bot_api.reply_message(
         event.reply_token,
         sticker_message)
-
+"""
 
 if __name__ == '__main__':
     app.run()
