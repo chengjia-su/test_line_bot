@@ -76,14 +76,16 @@ def register_car(number, name):
 
     cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
     all_data = cursor.fetchall()
+    ret = True
     for data in all_data:
         if name == data[0]:
-        ret = False
-    else:
+            ret = False
+            break
+    if ret:
         insert_dat = "INSERT INTO mzd_car (lice, name) VALUES ({}, '{}');".format(number, name)
         cursor.execute(insert_dat)
         conn.commit()
-        ret = True
+        
     cursor.close()
     conn.close()
 
