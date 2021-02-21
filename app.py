@@ -91,18 +91,33 @@ def register_car(number, name):
 
     return ret
 
+def unregister_car(number, name):
+    db_url = os.environ['DATABASE_URL']
+    conn = psycopg2.connect(db_url, sslmode='require')
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
+    all_data = cursor.fetchall()
+    ret = False
+    for data in all_data:
+        if name == data[0]:
+            ret = True
+            break
+    if ret:
+        insert_dat = "DELETE FROM mzd_car WHERE lice = '{}' AND name = '{}';".format(number, name)
+        cursor.execute(insert_dat)
+        conn.commit()
+        
+    cursor.close()
+    conn.close()
+
+    return ret    
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
 
     req_msg = str(event.message.text)
-    if event.source.type == "group":
-        print("msg from group, ID: " + event.source.groupId)
-        profile = line_bot_api.get_profile(event.source.user_id)
-        reply_msg = TextSendMessage(text=str(profile.display_name))
-        line_bot_api.reply_message(event.reply_token, reply_msg)
-        return 0
         
     if req_msg.startswith("++") and req_msg[2:6].isnumeric():
         number = req_msg[2:6]
@@ -122,10 +137,21 @@ def handle_message(event):
             names = "\n".join(ret)
             reply_msg = TextSendMessage(text="查詢車牌【{}】:\n{}".format(number, names))
         else:
-            reply_msg = TextSendMessage(text="查詢車牌【{}】:尚無車主註冊".format(number))
+            reply_msg = TextSendMessage(text="查詢車牌【{}】:\n尚無車主註冊".format(number))
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
+    if req_msg.startswith("--") and req_msg[2:6].isnumeric():
+        number = req_msg[2:6]
+        name = req_msg.split(":")[-1]
+        ret = unregister_car(number, name)
+        if ret:
+            reply_msg = TextSendMessage(text="車牌【{}: {}】刪除成功".format(number, name))
+        else:
+            reply_msg = TextSendMessage(text="車牌【{}: {}】刪除失敗, 找不到註冊資料".format(number, name))
+        line_bot_api.reply_message(event.reply_token, reply_msg)
+        return 0
+        
 """
 @handler.add(MessageEvent, message=StickerMessage)
 def handle_sticker_message(event):
