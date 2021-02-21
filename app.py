@@ -4,6 +4,7 @@ import random
 import configparser
 import os
 import os.path
+import psycopg2
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 from flask import Flask, request, abort
