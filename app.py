@@ -67,7 +67,10 @@ def query_car(number):
     cursor.execute("SELECT name, color FROM mzd_car WHERE lice = '{}'".format(number))
     all_data = cursor.fetchall()
     for data in all_data:
-        ret.append("{} / {}".format(data[0]/data[1]))
+        if data[1] is None:
+            ret.append("{} / {}".format(data[0], "未登記車色"))
+        else:
+            ret.append("{} / {}".format(data[0], data[1]))
     conn.close()
 
     return ret
@@ -98,10 +101,6 @@ def register_car(number, name, color):
     db_url = os.environ['DATABASE_URL']
     conn = psycopg2.connect(db_url, sslmode='require')
     cursor = conn.cursor()
-    add_colu = "ALTER TABLE mzd_car ADD COLUMN IF NOT EXISTS color VARCHAR(8);"
-    cursor.execute(add_colu)
-    conn.commit()
-
     cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
     all_data = cursor.fetchall()
     ret = True
