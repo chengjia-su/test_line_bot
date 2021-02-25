@@ -55,6 +55,7 @@ def query_color_number(color):
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM mzd_car WHERE color = '{}'".format(color))
     num = cursor.fetchone()
+    print("{} num: {}".format(color, num))
     conn.close()
 
     return num
@@ -204,6 +205,7 @@ def handle_message(event):
                                                                                                                                                    query_color_number("飛梭銀"),
                                                                                                                                                    query_color_number("鈦金棕"))
         line_bot_api.reply_message(event.reply_token, reply_msg)
+        return 0
         
 """
 @handler.add(MessageEvent, message=StickerMessage)
