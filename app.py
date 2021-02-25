@@ -157,6 +157,9 @@ def handle_message(event):
             color = get_color_fullname(color_in)
             if color is None:
                 reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車色 {} 無法辨識".format(number, color_in))
+                line_bot_api.reply_message(event.reply_token, reply_msg)
+                return 0
+
             ret = register_car(number, name, color)
             if ret:
                 reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{} 車色:{}".format(number, name, color))
