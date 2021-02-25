@@ -54,7 +54,7 @@ def query_color_number(color):
     conn = psycopg2.connect(db_url, sslmode='require')
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM mzd_car WHERE color = '{}'".format(color))
-    num, _ = cursor.fetchone()
+    num = cursor.fetchone()
     conn.close()
 
     return num
