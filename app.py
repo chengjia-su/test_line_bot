@@ -48,30 +48,58 @@ def callback():
         abort(400)
 
     return 'ok'
-    
+
+def query_color_number(color):
+    db_url = os.environ['DATABASE_URL']
+    conn = psycopg2.connect(db_url, sslmode='require')
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM mzd_car WHERE color = '{}'".format(color))
+    num, _ = cursor.fetchone()
+    conn.close()
+
+    return num
+
 def query_car(number):
     ret = []
     db_url = os.environ['DATABASE_URL']
     conn = psycopg2.connect(db_url, sslmode='require')
     cursor = conn.cursor()
-    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}'".format(number))
+    cursor.execute("SELECT name, color FROM mzd_car WHERE lice = '{}'".format(number))
     all_data = cursor.fetchall()
     for data in all_data:
-        ret.append(data[0])
+        ret.append("{} / {}".format(data[0]/data[1]))
     conn.close()
 
     return ret
 
-def register_car(number, name):
+def get_color_fullname(color):
+    if "雪" in color and "白" in color:
+        return "躍雪白"
+    elif "極" in color and "白" in color:
+        return "極粹白"
+    elif "極" in color and "灰" in color:
+        return "極境灰"
+    elif "鋼" in color and "灰" in color:
+        return "鋼鐵灰"
+    elif "黑" in color:
+        return "御鉄黑"
+    elif "紅" in color:
+        return "晶艷魂動紅"
+    elif "藍" in color:
+        return "星燦藍"
+    elif "銀" in color:
+        return "飛梭銀"
+    elif "棕" in color:
+        return "鈦金棕"
+    else:
+        return None
+
+def register_car(number, name, color):
     db_url = os.environ['DATABASE_URL']
     conn = psycopg2.connect(db_url, sslmode='require')
     cursor = conn.cursor()
-    create_table = '''CREATE TABLE IF NOT EXISTS mzd_car(
-        id serial PRIMARY KEY,
-        lice INT NOT NULL,
-        name VARCHAR (255)
-    );'''
-    cursor.execute(create_table)
+    add_colu = "ALTER TABLE mzd_car ADD COLUMN IF NOT EXISTS color VARCHAR(8);"
+    cursor.execute(add_colu)
     conn.commit()
 
     cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
@@ -82,7 +110,7 @@ def register_car(number, name):
             ret = False
             break
     if ret:
-        insert_dat = "INSERT INTO mzd_car (lice, name) VALUES ({}, '{}');".format(number, name)
+        insert_dat = "INSERT INTO mzd_car (lice, name, color) VALUES ({}, '{}');".format(number, name, color)
         cursor.execute(insert_dat)
         conn.commit()
         
@@ -120,14 +148,19 @@ def handle_message(event):
     req_msg = str(event.message.text)
         
     if req_msg.startswith("++") and req_msg[2:6].isnumeric():
-        if ":" not in req_msg:
-            reply_msg = TextSendMessage(text="註冊車牌格式錯誤. 格式應為:\n++[車號數字四位數]:[車主名]\n例如 ++1234:彰化金城武")
+        if ":" not in req_msg or "/" not in req_msg:
+            reply_msg = TextSendMessage(text="註冊車牌格式錯誤. 格式應為:\n++[車號數字四位數]:[車主名]/[車色]\n例如 ++1234:彰化金城武/躍雪白")
         else:
             number = req_msg[2:6]
-            name = req_msg.split(":")[-1]
-            ret = register_car(number, name)
+            pre_msg = req_msg.split("/")[0]
+            color_in = req_msg.split("/")[-1]
+            name = pre_msg.split(":")[-1]
+            color = get_color_fullname(color_in)
+            if color is None:
+                reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車色 {} 無法辨識".format(number, color_in))
+            ret = register_car(number, name, color)
             if ret:
-                reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{}".format(number, name))
+                reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{} 車色:{}".format(number, name, color))
             else:
                 reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車主{}已存在".format(number, name))
         line_bot_api.reply_message(event.reply_token, reply_msg)
@@ -157,6 +190,18 @@ def handle_message(event):
                 reply_msg = TextSendMessage(text="車牌【{}: {}】刪除失敗, 找不到註冊資料".format(number, name))
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
+
+    if req_msg.startswith("!!total"):
+        reply_msg = "【已註冊車色統計資料】\n躍雪白:{}\n極粹白:{}\n極境灰:{}\n鋼鐵灰:{}\n御鉄黑:{}\n晶艷魂動紅:{}\n星燦藍:{}\n飛梭銀:{}\n鈦金棕:{}".format(query_color_number("躍雪白"),
+                                                                                                                                                   query_color_number("極粹白"),
+                                                                                                                                                   query_color_number("極境灰"),
+                                                                                                                                                   query_color_number("鋼鐵灰"),
+                                                                                                                                                   query_color_number("御鉄黑"),
+                                                                                                                                                   query_color_number("晶艷魂動紅"),
+                                                                                                                                                   query_color_number("星燦藍"),
+                                                                                                                                                   query_color_number("飛梭銀"),
+                                                                                                                                                   query_color_number("鈦金棕"))
+        line_bot_api.reply_message(event.reply_token, reply_msg)
         
 """
 @handler.add(MessageEvent, message=StickerMessage)
