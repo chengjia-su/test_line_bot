@@ -168,8 +168,8 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
-    if req_msg.startswith("??") and req_msg[2:6].isnumeric():
-        number = req_msg[2:6]
+    if req_msg.startswith(("C", "c")) and req_msg[1:5].isnumeric():
+        number = req_msg[1:5]
         ret = query_car(number)
         if len(ret) > 0:
             names = "\n".join(ret)
