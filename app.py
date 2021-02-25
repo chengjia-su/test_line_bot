@@ -109,7 +109,7 @@ def register_car(number, name, color):
             ret = False
             break
     if ret:
-        insert_dat = "INSERT INTO mzd_car (lice, name, color) VALUES ({}, '{}');".format(number, name, color)
+        insert_dat = "INSERT INTO mzd_car (lice, name, color) VALUES ({}, '{}', '{}');".format(number, name, color)
         cursor.execute(insert_dat)
         conn.commit()
         
