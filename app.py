@@ -72,7 +72,7 @@ def login():
         user = User()
         user.id = test_user
         login_user(user)
-        return redirect(url_for('home.html'))
+        return redirect(url_for('home'))
 
     return render_template('login_fail.html')
 
