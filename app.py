@@ -72,11 +72,9 @@ def login():
         user = User()
         user.id = login_user
         login_user(user)
-        flash(f'歡迎CX30中部交流群版主{login_user}！')
-        return redirect(url_for('from_start'))
+        return redirect(url_for('home.html'))
 
-    flash('非版主請勿嘗試登入')
-    return render_template('login.html')
+    return render_template('login_fail.html')
 
 @app.route('/logout')
 def logout():
