@@ -94,6 +94,8 @@ def get_color_fullname(color):
         return "飛梭銀"
     elif "棕" in color:
         return "鈦金棕"
+    elif "琉光" in color or "光金" in color:
+        return "琉光金"
     else:
         return None
 
@@ -144,7 +146,7 @@ def handle_message(event):
     print("event.reply_token:", event.reply_token)
     print("event.message.text:", event.message.text)
 
-    req_msg = str(event.message.text)
+    req_msg = str(event.message.text).strip()
         
     if req_msg.startswith("++") and req_msg[2:6].isnumeric():
         if ":" not in req_msg or "/" not in req_msg:
@@ -152,8 +154,8 @@ def handle_message(event):
         else:
             number = req_msg[2:6]
             pre_msg = req_msg.split("/")[0]
-            color_in = req_msg.split("/")[-1]
-            name = pre_msg.split(":")[-1]
+            color_in = req_msg.split("/")[-1].strip()
+            name = pre_msg.split(":")[-1].strip()
             color = get_color_fullname(color_in)
             if color is None:
                 reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車色 {} 無法辨識".format(number, color_in))
@@ -184,7 +186,7 @@ def handle_message(event):
             reply_msg = TextSendMessage(text="刪除車牌格式錯誤. 格式應為:\n--[車號數字四位數]:[車主名]\n例如 --1234:彰化金城武")
         else:
             number = req_msg[2:6]
-            name = req_msg.split(":")[-1]
+            name = req_msg.split(":")[-1].strip()
             ret = unregister_car(number, name)
             if ret:
                 reply_msg = TextSendMessage(text="車牌【{}: {}】刪除成功".format(number, name))
@@ -202,7 +204,8 @@ def handle_message(event):
                                                                                                                                                    query_color_number("晶艷魂動紅"),
                                                                                                                                                    query_color_number("星燦藍"),
                                                                                                                                                    query_color_number("飛梭銀"),
-                                                                                                                                                   query_color_number("鈦金棕"))
+                                                                                                                                                   query_color_number("鈦金棕"),
+                                                                                                                                                   query_color_number("琉光金"))
         reply_msg = TextSendMessage(text=ret_text)
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
