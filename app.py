@@ -196,7 +196,7 @@ def handle_message(event):
         return 0
 
     if req_msg.startswith("!!total"):
-        ret_text = "【已註冊車色統計資料】\n躍雪白:{}\n極粹白:{}\n極境灰:{}\n鋼鐵灰:{}\n御鉄黑:{}\n晶艷魂動紅:{}\n星燦藍:{}\n飛梭銀:{}\n鈦金棕:{}".format(query_color_number("躍雪白"),
+        ret_text = "【已註冊車色統計資料】\n躍雪白:{}\n極粹白:{}\n極境灰:{}\n鋼鐵灰:{}\n御鉄黑:{}\n晶艷魂動紅:{}\n星燦藍:{}\n飛梭銀:{}\n鈦金棕:{}\n琉光金:{}".format(query_color_number("躍雪白"),
                                                                                                                                                    query_color_number("極粹白"),
                                                                                                                                                    query_color_number("極境灰"),
                                                                                                                                                    query_color_number("鋼鐵灰"),
