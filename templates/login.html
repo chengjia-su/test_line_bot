@@ -152,7 +152,7 @@ input:focus :-ms-input-placeholder {
 
 </head>
 <body>
-<form class="login-form">
+<form class="login-form" method="post" action="/login">
   <p class="login-text">
     <span class="fa-stack fa-lg">
       <i class="fa fa-circle fa-stack-2x"></i>
@@ -161,9 +161,9 @@ input:focus :-ms-input-placeholder {
   </p>
   <h2>CX30 中部交流群</h2>
   <h2>版主專屬後台</h2>
-  <input type="text" class="login-username" autofocus="true" required="true" placeholder="帳號" />
-  <input type="password" class="login-password" required="true" placeholder="密碼" />
-  <input type="submit" name="Login" value="登入" class="login-submit" />
+  <input type="text" id="user_id" name="user_id" class="login-username" autofocus="true" required="true" placeholder="帳號" />
+  <input type="password" id="password" name="password" class="login-password" required="true" placeholder="密碼" />
+  <button type="submit" class="login-submit">登入</button>
 </form>
 <div class="underlay-photo"></div>
 <div class="underlay-black"></div>
