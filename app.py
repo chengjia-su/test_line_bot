@@ -31,7 +31,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.session_protection = "strong"
 login_manager.login_view = 'login'
-login_manager.login_message = 'CX30中部交流群版主專屬後台'
 
 users = {'curtis': {'password': 'Mazda!cx30@6576'}}
 
