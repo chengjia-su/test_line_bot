@@ -159,9 +159,13 @@ input:focus :-ms-input-placeholder {
       <i class="fa fa-lock fa-stack-1x"></i>
     </span>
   </p>
-  {% for message in messages %}
-    <h2>{{ message }}</h2>
-  {% endfor %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <h2> {{ message }} </h2>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
   <h2>CX30 中部交流群</h2>
   <h2>版主專屬後台</h2>
   <input type="text" id="user_id" name="user_id" class="login-username" autofocus="true" required="true" placeholder="帳號" />
