@@ -7,7 +7,8 @@ import os.path
 import psycopg2
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
-from flask import Flask, request, abort
+from flask import Flask, request, abort, render_template, url_for, redirect, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from imgurpython import ImgurClient
 
 from linebot import (
@@ -21,14 +22,72 @@ from linebot.models import *
 app = Flask(__name__)
 config = configparser.ConfigParser()
 config.read("config.ini")
+app.secret_key = config['flask']['secret_key']
 
 line_bot_api = LineBotApi(os.environ.get("ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("SECRET"))
-client_id = config['imgur_api']['Client_ID']
-client_secret = config['imgur_api']['Client_Secret']
-album_id = config['imgur_api']['Album_ID']
-API_Get_Image = config['other_api']['API_Get_Image']
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.session_protection = "strong"
+login_manager.login_view = 'login'
+login_manager.login_message = 'CX30中部交流群版主專屬後台'
+
+users = {'curtis': {'password': 'Mazda!cx30@6576'}}
+
+class User(UserMixin):
+    pass
+
+@login_manager.user_loader
+def user_loader(login_user):
+    if login_user not in users:
+        return
+
+    user = User()
+    user.id = login_user
+    return user
+
+@login_manager.request_loader
+def request_loader(request):
+    login_user = request.form.get('user_id')
+    if login_user not in users:
+        return
+
+    user = User()
+    user.id = login_user
+
+    # DO NOT ever store passwords in plaintext and always compare password
+    # hashes using constant-time comparison!
+    user.is_authenticated = request.form['password'] == users[login_user]['password']
+
+    return user
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template("login.html")
+    
+    login_user = request.form['user_id']
+    if (login_user in users) and (request.form['password'] == users[login_user]['password']):
+        user = User()
+        user.id = login_user
+        login_user(user)
+        flash(f'歡迎CX30中部交流群版主{login_user}！')
+        return redirect(url_for('from_start'))
+
+    flash('非版主請勿嘗試登入')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    login_user = current_user.get_id()
+    logout_user()
+    return render_template('login.html')
+
+@app.route("/")
+@login_required
+def home():
+    return render_template("home.html")
 
 @app.route("/callback", methods=['POST'])
 def callback():
