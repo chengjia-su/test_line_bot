@@ -39,26 +39,26 @@ class User(UserMixin):
     pass
 
 @login_manager.user_loader
-def user_loader(login_user):
-    if login_user not in users:
+def user_loader(test_user):
+    if test_user not in users:
         return
 
     user = User()
-    user.id = login_user
+    user.id = test_user
     return user
 
 @login_manager.request_loader
 def request_loader(request):
-    login_user = request.form.get('user_id')
-    if login_user not in users:
+    test_user = request.form.get('user_id')
+    if test_user not in users:
         return
 
     user = User()
-    user.id = login_user
+    user.id = test_user
 
     # DO NOT ever store passwords in plaintext and always compare password
     # hashes using constant-time comparison!
-    user.is_authenticated = request.form['password'] == users[login_user]['password']
+    user.is_authenticated = request.form['password'] == users[test_user]['password']
 
     return user
 
@@ -67,10 +67,10 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
     
-    login_user = request.form['user_id']
-    if (login_user in users) and (request.form['password'] == users[login_user]['password']):
+    test_user = request.form['user_id']
+    if (test_user in users) and (request.form['password'] == users[test_user]['password']):
         user = User()
-        user.id = login_user
+        user.id = test_user
         login_user(user)
         return redirect(url_for('home.html'))
 
@@ -78,7 +78,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    login_user = current_user.get_id()
+    test_user = current_user.get_id()
     logout_user()
     return render_template('login.html')
 
