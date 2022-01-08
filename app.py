@@ -74,7 +74,8 @@ def login():
         login_user(user)
         return redirect(url_for('home'))
 
-    return render_template('login_fail.html')
+    flash('帳號或密碼錯誤!非版主請勿嘗試登入!')
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
