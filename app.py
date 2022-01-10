@@ -28,7 +28,16 @@ line_bot_api = LineBotApi(os.environ.get("ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("SECRET"))
 
 users = {}
-query_admin()
+db_url = os.environ['DATABASE_URL']
+conn = psycopg2.connect(db_url, sslmode='require')
+cursor = conn.cursor()
+cursor.execute("SELECT user_id, pwd FROM admin_user")
+all_data = cursor.fetchall()
+for data in all_data:
+    print("load admin user:" + str(data[0]))
+    users.update({data[0]: {"password":data[1]}})
+conn.close()
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.session_protection = "strong"
@@ -120,20 +129,6 @@ def query_color_number(color):
     conn.close()
 
     return color_num
-
-def query_admin():
-    ret = []
-    db_url = os.environ['DATABASE_URL']
-    conn = psycopg2.connect(db_url, sslmode='require')
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id, pwd FROM admin_user")
-    all_data = cursor.fetchall()
-    for data in all_data:
-        print("load admin user:" + str(data[0]))
-        users.update({data[0]: {"password":data[1]}})
-    conn.close()
-
-    return ret
 
 def query_car(number):
     ret = []
