@@ -32,7 +32,7 @@ login_manager.init_app(app)
 login_manager.session_protection = "strong"
 login_manager.login_view = 'login'
 
-users = {'curtis': {'password': 'Mazda!cx30@6576'}}
+users = {'curtis': {'password': 'test123'}}
 
 class User(UserMixin):
     pass
@@ -85,7 +85,7 @@ def logout():
 @app.route("/")
 @login_required
 def home():
-    return render_template("home.html")
+    return render_template("login.html")
 
 @app.route("/callback", methods=['POST'])
 def callback():

@@ -120,7 +120,7 @@ input:focus :-ms-input-placeholder {
 }
 
 .underlay-photo {
-  background: url("https://www.mazda.com.tw/globalassets/cars/cx-30/04_cx30_1800x780_20210105.jpg");
+  background: url("{{ url_for('static', filename='img/cx_30_bg.jpg') }}");
   background-size: cover;
   -webkit-filter: grayscale(30%);
   z-index: -1;
