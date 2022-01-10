@@ -27,12 +27,13 @@ app.secret_key = config['flask']['secret_key']
 line_bot_api = LineBotApi(os.environ.get("ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("SECRET"))
 
+users = {}
+query_admin()
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.session_protection = "strong"
 login_manager.login_view = 'login'
-
-users = {'curtis': {'password': 'test123'}}
+login_manager.login_message = '後台管理頁面需先登入'
 
 class User(UserMixin):
     pass
@@ -80,7 +81,7 @@ def login():
 def logout():
     test_user = current_user.get_id()
     logout_user()
-    return render_template('login.html')
+    return render_template('home.html')
 
 @app.route('/admin')
 @login_required
@@ -119,6 +120,20 @@ def query_color_number(color):
     conn.close()
 
     return color_num
+
+def query_admin():
+    ret = []
+    db_url = os.environ['DATABASE_URL']
+    conn = psycopg2.connect(db_url, sslmode='require')
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, pwd FROM admin_user")
+    all_data = cursor.fetchall()
+    for data in all_data:
+        print("load admin user:" + str(data[0]))
+        users.update({data[0]: {"password":data[1]}})
+    conn.close()
+
+    return ret
 
 def query_car(number):
     ret = []
