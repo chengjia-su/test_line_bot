@@ -96,10 +96,10 @@ def logout():
 @login_required
 def admin():
     if request.method == 'POST':
-        ret = query_car(request.form['lice'])
+        ret = web_query_car(request.form['lice'])
         return render_template('admin.html', car_record=ret)
     else:
-        return render_template("select_records.html")
+        return render_template("admin.html")
 
 @app.route("/")
 def home():
