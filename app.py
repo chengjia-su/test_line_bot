@@ -148,7 +148,7 @@ def web_query_car(number):
             ret.append([data[0], data[1]])
     conn.close()
 
-    return ret
+    return table
 
 def query_car(number):
     ret = []
