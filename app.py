@@ -71,7 +71,7 @@ def login():
         user = User()
         user.id = test_user
         login_user(user)
-        return redirect(url_for('home'))
+        return redirect(url_for('admin'))
 
     flash('帳號或密碼錯誤!非版主請勿嘗試登入!')
     return render_template('login.html')
@@ -82,10 +82,14 @@ def logout():
     logout_user()
     return render_template('login.html')
 
-@app.route("/")
+@app.route('/admin')
 @login_required
+def admin():
+    return render_template('admin.html')
+
+@app.route("/")
 def home():
-    return render_template("login.html")
+    return render_template("home.html")
 
 @app.route("/callback", methods=['POST'])
 def callback():

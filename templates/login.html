@@ -20,6 +20,11 @@ h2 {
   text-align: center;
 }
 
+h3 {
+  color: red;
+  text-align: center;
+}
+
 input ::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.7);
 }
@@ -162,7 +167,7 @@ input:focus :-ms-input-placeholder {
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       {% for message in messages %}
-        <h2> {{ message }} </h2>
+        <h3> {{ message }} </h3>
       {% endfor %}
     {% endif %}
   {% endwith %}
