@@ -145,7 +145,7 @@ def web_query_car(number):
         if data[1] is None:
             table.append(["無紀錄", ""])
         else:
-            ret.append([data[0], data[1]])
+            table.append([data[0], data[1]])
     conn.close()
 
     return table
