@@ -92,10 +92,14 @@ def logout():
     logout_user()
     return render_template('home.html')
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
-    return render_template('admin.html')
+    if request.method == 'POST':
+        ret = query_car(request.form['lice'])
+        return render_template('admin.html', car_record=ret)
+    else:
+        return render_template("select_records.html")
 
 @app.route("/")
 def home():
@@ -129,6 +133,22 @@ def query_color_number(color):
     conn.close()
 
     return color_num
+
+def web_query_car(number):
+    table = []
+    db_url = os.environ['DATABASE_URL']
+    conn = psycopg2.connect(db_url, sslmode='require')
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, color FROM mzd_car WHERE lice = '{}'".format(number))
+    all_data = cursor.fetchall()
+    for data in all_data:
+        if data[1] is None:
+            table.append(["無紀錄", ""])
+        else:
+            ret.append([data[0], data[1]])
+    conn.close()
+
+    return ret
 
 def query_car(number):
     ret = []
