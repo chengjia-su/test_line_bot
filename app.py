@@ -380,7 +380,6 @@ def handle_message(event):
         number = req_msg[1:5]
         ret = query_car(number)
         if ret is not None:
-            names = "\n".join(ret)
             reply_msg = FlexSendMessage('query car result', ret)
         else:
             reply_msg = TextSendMessage(text="查詢車牌【{}】:\n尚無車主註冊".format(number))
