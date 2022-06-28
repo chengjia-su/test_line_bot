@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from flask import Flask, request, abort, render_template, url_for, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from imgurpython import ImgurClient
+import pygsheets
 
 from linebot import (
     LineBotApi, WebhookHandler
@@ -124,6 +125,15 @@ def callback():
 
     return 'ok'
 
+def getsheet():
+    gc = pygsheets.authorize(service_account_file='cx30carlinebot-ed0db68b130f.json')
+    survey_url = 'https://docs.google.com/spreadsheets/d/1ne-exOjrRDLNhPwWmJwRkpfTMBfLmuyBeMVw8P4M6uE/'
+    sh = gc.open_by_url(survey_url)
+
+    wk1 = sh[0]
+    records = wk1.get_all_records()
+    app.logger.info(records)
+
 def query_color_number(color):
     db_url = os.environ['DATABASE_URL']
     conn = psycopg2.connect(db_url, sslmode='require')
@@ -151,6 +161,7 @@ def web_query_car(number):
     return table
 
 def query_car(number):
+    getsheet()
     ret = []
     db_url = os.environ['DATABASE_URL']
     conn = psycopg2.connect(db_url, sslmode='require')
