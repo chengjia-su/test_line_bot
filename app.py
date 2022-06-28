@@ -276,7 +276,8 @@ def query_car(number):
             bubble_msg = bubble.format(img_id=img_id, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
             all_bubble.append(bubble_msg)
     if all_bubble:
-        carousel_msg = carousel.format(bubble = ",".join(all_bubble))
+        carousel_msg = carousel.format(bubble=",".join(all_bubble))
+        print(carousel_msg)
         return carousel_msg
     else:
         return None
