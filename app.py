@@ -132,7 +132,7 @@ def getsheet():
 
     wk1 = sh[0]
     records = wk1.get_all_records()
-    app.logger.info(records)
+    print(records)
 
 def query_color_number(color):
     db_url = os.environ['DATABASE_URL']
