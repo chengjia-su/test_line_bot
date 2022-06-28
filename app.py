@@ -57,7 +57,7 @@ bubble = '''
   "type": "bubble",
   "hero": {{
     "type": "image",
-    "url": "https://drive.google.com/uc?export=view&id={}",
+    "url": "https://drive.google.com/uc?export=view&id={img_id}",
     "size": "full",
     "aspectRatio": "20:13",
     "aspectMode": "cover",
@@ -68,7 +68,7 @@ bubble = '''
     "contents": [
       {{
         "type": "text",
-        "text": "{0:05d}",
+        "text": "{number:05d}",
         "weight": "bold",
         "size": "xl"
       }},
@@ -92,7 +92,7 @@ bubble = '''
               }},
               {{
                 "type": "text",
-                "text": "{}",
+                "text": "{name}",
                 "wrap": true,
                 "color": "#666666",
                 "size": "sm",
@@ -114,7 +114,7 @@ bubble = '''
               }},
               {{
                 "type": "text",
-                "text": "{}",
+                "text": "{line_id}",
                 "wrap": true,
                 "color": "#666666",
                 "size": "sm",
@@ -136,7 +136,7 @@ bubble = '''
               }},
               {{
                 "type": "text",
-                "text": "{}",
+                "text": "{place}",
                 "wrap": true,
                 "color": "#666666",
                 "size": "sm",
@@ -273,7 +273,7 @@ def query_car(number):
     for data in records:
         if int(data['車號']) == int(number):
             img_id = data['上傳圖片'].split("=")[-1]
-            bubble_msg = bubble.format(img_id, data['車號'], data['名稱'], data['LINE上顯示名稱'], data['常出沒地點'])
+            bubble_msg = bubble.format(img_id=img_id, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
             all_bubble.append(bubble_msg)
     if all_bubble:
         carousel_msg = carousel.format(bubble = ",".join(all_bubble))
