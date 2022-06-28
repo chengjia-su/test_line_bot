@@ -45,12 +45,19 @@ login_manager.session_protection = "strong"
 login_manager.login_view = 'login'
 login_manager.login_message = '後台管理頁面需先登入'
 
-reply_msg_flex = '''
+carousel ='''
+{
+  "type": "carousel",
+  "contents": [{bubble}]
+}
+'''
+
+bubble = '''
 {
   "type": "bubble",
   "hero": {
     "type": "image",
-    "url": "https://drive.google.com/uc?export=view&id={img_id}",
+    "url": "https://drive.google.com/uc?export=view&id={}",
     "size": "full",
     "aspectRatio": "20:13",
     "aspectMode": "cover",
@@ -61,7 +68,7 @@ reply_msg_flex = '''
     "contents": [
       {
         "type": "text",
-        "text": "{number}",
+        "text": "{0:05d}",
         "weight": "bold",
         "size": "xl"
       },
@@ -85,7 +92,7 @@ reply_msg_flex = '''
               },
               {
                 "type": "text",
-                "text": "{name}",
+                "text": "{}",
                 "wrap": true,
                 "color": "#666666",
                 "size": "sm",
@@ -107,7 +114,7 @@ reply_msg_flex = '''
               },
               {
                 "type": "text",
-                "text": "{line_id}",
+                "text": "{}",
                 "wrap": true,
                 "color": "#666666",
                 "size": "sm",
@@ -129,7 +136,7 @@ reply_msg_flex = '''
               },
               {
                 "type": "text",
-                "text": "{place}",
+                "text": "{}",
                 "wrap": true,
                 "color": "#666666",
                 "size": "sm",
@@ -232,7 +239,7 @@ def getsheet():
 
     wk1 = sh[0]
     records = wk1.get_all_records()
-    print(records)
+    return records
 
 def query_color_number(color):
     db_url = os.environ['DATABASE_URL']
@@ -261,21 +268,18 @@ def web_query_car(number):
     return table
 
 def query_car(number):
-    getsheet()
-    ret = []
-    db_url = os.environ['DATABASE_URL']
-    conn = psycopg2.connect(db_url, sslmode='require')
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, color FROM mzd_car WHERE lice = '{}'".format(number))
-    all_data = cursor.fetchall()
-    for data in all_data:
-        if data[1] is None:
-            ret.append("{} / {}".format(data[0], "未登記車色"))
-        else:
-            ret.append("{} / {}".format(data[0], data[1]))
-    conn.close()
-
-    return ret
+    records = getsheet()
+    all_bubble = []
+    for data in records:
+        if int(data['車號']) == int(number):
+            img_id = data['上傳圖片'].split("=")[-1]
+            bubble_msg = bubble.format(img_id, data['車號'], data['名稱'], data['LINE上顯示名稱'], data['常出沒地點'])
+            all_bubble.append(bubble_msg)
+    if all_bubble:
+        carousel_msg = carousel.format(bubble = ",".join(all_bubble))
+        return carousel_msg
+    else:
+        return None
 
 def get_color_fullname(color):
     if "雪" in color and "白" in color:
@@ -375,9 +379,9 @@ def handle_message(event):
     if req_msg.startswith(("C", "c")) and req_msg[1:5].isnumeric():
         number = req_msg[1:5]
         ret = query_car(number)
-        if len(ret) > 0:
+        if ret is not None:
             names = "\n".join(ret)
-            reply_msg = TextSendMessage(text="查詢車牌【{}】:\n{}".format(number, names))
+            reply_msg = FlexSendMessage('query car result', ret)
         else:
             reply_msg = TextSendMessage(text="查詢車牌【{}】:\n尚無車主註冊".format(number))
         line_bot_api.reply_message(event.reply_token, reply_msg)
