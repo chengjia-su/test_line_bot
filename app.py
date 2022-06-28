@@ -45,6 +45,106 @@ login_manager.session_protection = "strong"
 login_manager.login_view = 'login'
 login_manager.login_message = '後台管理頁面需先登入'
 
+reply_msg_flex = '''
+{
+  "type": "bubble",
+  "hero": {
+    "type": "image",
+    "url": "https://drive.google.com/uc?export=view&id={img_id}",
+    "size": "full",
+    "aspectRatio": "20:13",
+    "aspectMode": "cover",
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "{number}",
+        "weight": "bold",
+        "size": "xl"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "暱稱",
+                "color": "#aaaaaa",
+                "size": "sm",
+                "flex": 1
+              },
+              {
+                "type": "text",
+                "text": "{name}",
+                "wrap": true,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 5
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "Line名稱:",
+                "color": "#aaaaaa",
+                "size": "sm",
+                "flex": 1
+              },
+              {
+                "type": "text",
+                "text": "{line_id}",
+                "wrap": true,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 5,
+                "offsetStart": "xl"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "text",
+                "text": "出沒地點:",
+                "color": "#aaaaaa",
+                "size": "sm",
+                "flex": 1
+              },
+              {
+                "type": "text",
+                "text": "{place}",
+                "wrap": true,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 5,
+                "offsetStart": "xl"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+'''
+
 class User(UserMixin):
     pass
 
