@@ -58,7 +58,7 @@ bubble = '''
   "type": "bubble",
   "hero": {{
     "type": "image",
-    "url": "https://lh3.google.com/u/0/d/{img_id}=w3839",
+    "url": "https://lh3.google.com/u/0/d/{img_id}=w2400",
     "size": "full",
     "aspectRatio": "20:13",
     "aspectMode": "cover",
