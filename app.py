@@ -5,6 +5,7 @@ import configparser
 import os
 import os.path
 import psycopg2
+import json
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 from flask import Flask, request, abort, render_template, url_for, redirect, flash
@@ -60,7 +61,7 @@ bubble = '''
     "url": "https://drive.google.com/uc?export=view&id={img_id}",
     "size": "full",
     "aspectRatio": "20:13",
-    "aspectMode": "cover",
+    "aspectMode": "cover"
   }},
   "body": {{
     "type": "box",
@@ -233,7 +234,7 @@ def callback():
     return 'ok'
 
 def getsheet():
-    gc = pygsheets.authorize(service_account_file='cx30carlinebot-ed0db68b130f.json')
+    gc = pygsheets.authorize(service_account_env_var = 'GDRIVE_API_CREDENTIALS')
     survey_url = 'https://docs.google.com/spreadsheets/d/1ne-exOjrRDLNhPwWmJwRkpfTMBfLmuyBeMVw8P4M6uE/'
     sh = gc.open_by_url(survey_url)
 
@@ -277,8 +278,9 @@ def query_car(number):
             all_bubble.append(bubble_msg)
     if all_bubble:
         carousel_msg = carousel.format(bubble=",".join(all_bubble))
-        print(carousel_msg)
-        return carousel_msg
+        json_final = json.loads(carousel_msg)
+        print(json_final)
+        return json_final
     else:
         return None
 
