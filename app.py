@@ -278,7 +278,7 @@ def query_car(number):
     for data in records:
         if int(data['車號']) == int(number):
             img_id = data['上傳圖片'].split("=")[-1]
-            img_url = "https://lh3.google.com/u/0/d/{img_id}=w300".format(img_id)
+            img_url = "https://lh3.google.com/u/0/d/{img_id}=w300".format(img_id=img_id)
             r = requests.get(img_url)
             bubble_msg = bubble.format(img_url=r.url, img_id=img_id, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
             all_bubble.append(bubble_msg)
