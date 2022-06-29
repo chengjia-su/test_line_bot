@@ -58,7 +58,7 @@ bubble = '''
   "type": "bubble",
   "hero": {{
     "type": "image",
-    "url": "https://drive.google.com/uc?id={img_id}",
+    "url": "https://lh3.google.com/u/0/d/{img_id}=w3839",
     "size": "full",
     "aspectRatio": "20:13",
     "aspectMode": "cover",
@@ -239,7 +239,7 @@ def callback():
 
 def getsheet():
     gc = pygsheets.authorize(service_account_env_var = 'GDRIVE_API_CREDENTIALS')
-    survey_url = 'https://docs.google.com/spreadsheets/d/1ne-exOjrRDLNhPwWmJwRkpfTMBfLmuyBeMVw8P4M6uE/'
+    survey_url = os.environ['SHEET_URL']
     sh = gc.open_by_url(survey_url)
 
     wk1 = sh[0]
