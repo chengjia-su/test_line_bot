@@ -58,7 +58,7 @@ bubble = '''
   "type": "bubble",
   "hero": {{
     "type": "image",
-    "url": "https://drive.google.com/uc?export=view&id={img_id}",
+    "url": "https://drive.google.com/uc?id={img_id}",
     "size": "full",
     "aspectRatio": "20:13",
     "aspectMode": "cover"
