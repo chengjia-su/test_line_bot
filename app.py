@@ -62,10 +62,10 @@ bubble = '''
     "size": "full",
     "aspectRatio": "20:13",
     "aspectMode": "cover",
-    "action": {
+    "action": {{
       "type": "uri",
       "uri": "https://drive.google.com/uc?id={img_id}"
-    }
+    }}
   }},
   "body": {{
     "type": "box",
@@ -73,7 +73,7 @@ bubble = '''
     "contents": [
       {{
         "type": "text",
-        "text": "{number:05d}",
+        "text": "{number:04d}",
         "weight": "bold",
         "size": "xl"
       }},
