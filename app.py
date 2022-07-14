@@ -283,12 +283,9 @@ def query_car(number):
             rs = requests.get(img_url)
             print(rs.content)
             soup = BeautifulSoup(rs.content, 'html.parser')
-            img_src = None
-            for link in soup.find_all('meta'):
-                print(link.get('property'))
-                if "og:image" in link.get('property'):
-                    img_src = link.get('content')
-                    print(img_src)
+            meta = soup.find("meta", property="og:image")
+            img_src = meta["content"]
+            print(img_src)
             if not img_src:
                 return None
             bubble_msg = bubble.format(img_src=img_src, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
