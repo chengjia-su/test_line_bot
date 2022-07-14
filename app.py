@@ -279,7 +279,7 @@ def query_car(number):
         if int(data['車號']) == int(number):
             img_id = data['上傳圖片'].split("=")[-1]
             img_url = "https://drive.google.com/file/d/{}/view".format(img_id)
-            soup = BeautifulSoup(html_doc, 'html.parser')
+            soup = BeautifulSoup(img_url, 'html.parser')
             for link in soup.find_all('img'):
                 if "目前顯示的是" in link.get('alt'):
                     img_src = link.get('src')
