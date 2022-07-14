@@ -281,9 +281,11 @@ def query_car(number):
             img_id = data['上傳圖片'].split("=")[-1]
             img_url = "https://drive.google.com/file/d/{}/view".format(img_id)
             rs = requests.get(img_url)
+            print(rs.content)
             soup = BeautifulSoup(rs.content, 'html.parser')
             img_src = None
             for link in soup.find_all('img'):
+                print(link.get('alt'))
                 if "目前顯示的是" in link.get('alt'):
                     img_src = link.get('src')
                     print(img_src)
