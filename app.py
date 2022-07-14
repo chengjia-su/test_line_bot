@@ -284,10 +284,10 @@ def query_car(number):
             print(rs.content)
             soup = BeautifulSoup(rs.content, 'html.parser')
             img_src = None
-            for link in soup.find_all('img'):
-                print(link.get('alt'))
-                if "目前顯示的是" in link.get('alt'):
-                    img_src = link.get('src')
+            for link in soup.find_all('meta'):
+                print(link.get('property'))
+                if "og:image" in link.get('property'):
+                    img_src = link.get('content')
                     print(img_src)
             if not img_src:
                 return None
