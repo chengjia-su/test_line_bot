@@ -8,6 +8,7 @@ import psycopg2
 import json
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+import requests
 from flask import Flask, request, abort, render_template, url_for, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from imgurpython import ImgurClient
@@ -279,11 +280,15 @@ def query_car(number):
         if int(data['車號']) == int(number):
             img_id = data['上傳圖片'].split("=")[-1]
             img_url = "https://drive.google.com/file/d/{}/view".format(img_id)
-            soup = BeautifulSoup(img_url, 'html.parser')
+            rs = requests.get(img_url)
+            soup = BeautifulSoup(rs.content, 'html.parser')
+            img_src = None
             for link in soup.find_all('img'):
                 if "目前顯示的是" in link.get('alt'):
                     img_src = link.get('src')
                     print(img_src)
+            if not img_src:
+                return None
             bubble_msg = bubble.format(img_src=img_src, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
             all_bubble.append(bubble_msg)
     if all_bubble:
