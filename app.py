@@ -61,7 +61,7 @@ bubble = '''
     "url": "https://drive.google.com/uc?export=view&id={img_id}",
     "size": "full",
     "aspectRatio": "16:9",
-    "aspectMode": "fit",
+    "aspectMode": "cover",
     "action": {{
       "type": "uri",
       "uri": "https://drive.google.com/uc?export=view&id={img_id}"
