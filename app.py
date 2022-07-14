@@ -58,13 +58,13 @@ bubble = '''
   "type": "bubble",
   "hero": {{
     "type": "image",
-    "url": "https://drive.google.com/uc?export=view&id={img_id}",
+    "url": "{img_src}",
     "size": "full",
     "aspectRatio": "16:9",
     "aspectMode": "cover",
     "action": {{
       "type": "uri",
-      "uri": "https://drive.google.com/uc?export=view&id={img_id}"
+      "uri": "{img_src}"
     }}
   }},
   "body": {{
@@ -278,7 +278,13 @@ def query_car(number):
     for data in records:
         if int(data['車號']) == int(number):
             img_id = data['上傳圖片'].split("=")[-1]
-            bubble_msg = bubble.format(img_id=img_id, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
+            img_url = "https://drive.google.com/file/d/{}/view".format(img_id)
+            soup = BeautifulSoup(html_doc, 'html.parser')
+            for link in soup.find_all('img'):
+                if "目前顯示的是" in link.get('alt'):
+                    img_src = link.get('src')
+                    print(img_src)
+            bubble_msg = bubble.format(img_src=img_src, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
             all_bubble.append(bubble_msg)
     if all_bubble:
         carousel_msg = carousel.format(bubble=",".join(all_bubble))
