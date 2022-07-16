@@ -8,7 +8,6 @@ import psycopg2
 import json
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
-import requests
 from flask import Flask, request, abort, render_template, url_for, redirect, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from imgurpython import ImgurClient
@@ -21,31 +20,6 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import *
-
-app = Flask(__name__)
-config = configparser.ConfigParser()
-config.read("config.ini")
-app.secret_key = config['flask']['secret_key']
-
-line_bot_api = LineBotApi(os.environ.get("ACCESS_TOKEN"))
-handler = WebhookHandler(os.environ.get("SECRET"))
-
-users = {}
-db_url = os.environ['DATABASE_URL']
-conn = psycopg2.connect(db_url, sslmode='require')
-cursor = conn.cursor()
-cursor.execute("SELECT user_id, pwd FROM admin_user")
-all_data = cursor.fetchall()
-for data in all_data:
-    print("load admin user:" + str(data[0]))
-    users.update({data[0]: {"password":data[1]}})
-conn.close()
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.session_protection = "strong"
-login_manager.login_view = 'login'
-login_manager.login_message = '後台管理頁面需先登入'
 
 carousel ='''
 {{
@@ -61,7 +35,7 @@ bubble = '''
     "type": "image",
     "url": "{img_src}",
     "size": "full",
-    "aspectRatio": "16:9",
+    "aspectRatio": "20:13",
     "aspectMode": "cover",
     "action": {{
       "type": "uri",
@@ -157,67 +131,145 @@ bubble = '''
   }}
 }}
 '''
+register_msg = '''
+{
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "md",
+    "action": {
+      "type": "uri",
+      "uri": "https://linecorp.com"
+    },
+    "contents": [
+      {
+        "type": "text",
+        "text": "註冊車牌",
+        "size": "xl",
+        "weight": "bold"
+      },
+      {
+        "type": "separator"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "註冊方式改為填寫Google表單",
+                "weight": "bold",
+                "margin": "sm",
+                "flex": 0
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "點選下方按鈕開啟表單",
+                "weight": "bold",
+                "margin": "sm",
+                "flex": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "separator"
+      },
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "注意!",
+            "weight": "bold",
+            "margin": "sm",
+            "flex": 0,
+            "color": "#ff0000"
+          }
+        ]
+      },
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "1. 上傳圖片後無法自行更改",
+            "weight": "bold",
+            "margin": "sm",
+            "flex": 0,
+            "color": "#ff0000"
+          }
+        ]
+      },
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "2. 避免重複填寫",
+            "weight": "bold",
+            "margin": "sm",
+            "flex": 0,
+            "color": "#ff0000"
+          }
+        ]
+      },
+      {
+        "type": "separator"
+      },
+      {
+        "type": "text",
+        "text": "需要登入google帳號為了管控人數"
+      },
+      {
+        "type": "text",
+        "text": "避免圖片塞爆雲端空間"
+      },
+      {
+        "type": "text",
+        "text": "無google帳號者可找機器人作者協助"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "button",
+        "style": "primary",
+        "color": "#905c44",
+        "margin": "xxl",
+        "action": {
+          "type": "uri",
+          "label": "點擊開啟表單",
+          "uri": "https://forms.gle/STZZG28A97VJrGPH6"
+        }
+      }
+    ]
+  }
+}
+'''
+app = Flask(__name__)
 
-class User(UserMixin):
-    pass
-
-@login_manager.user_loader
-def user_loader(test_user):
-    if test_user not in users:
-        return
-
-    user = User()
-    user.id = test_user
-    return user
-
-@login_manager.request_loader
-def request_loader(request):
-    test_user = request.form.get('user_id')
-    if test_user not in users:
-        return
-
-    user = User()
-    user.id = test_user
-
-    # DO NOT ever store passwords in plaintext and always compare password
-    # hashes using constant-time comparison!
-    user.is_authenticated = request.form['password'] == users[test_user]['password']
-
-    return user
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        return render_template("login.html")
-    
-    test_user = request.form['user_id']
-    if (test_user in users) and (request.form['password'] == users[test_user]['password']):
-        user = User()
-        user.id = test_user
-        login_user(user)
-        return redirect(url_for('admin'))
-
-    flash('帳號或密碼錯誤!非版主請勿嘗試登入!')
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    test_user = current_user.get_id()
-    logout_user()
-    return render_template('home.html')
-
-@app.route('/admin', methods=['GET', 'POST'])
-@login_required
-def admin():
-    if request.method == 'POST':
-        ret = web_query_car(request.form['lice'])
-        return render_template('admin.html', car_record=ret)
-    else:
-        return render_template("admin.html")
-
-@app.route("/")
-def home():
-    return render_template("home.html")
+line_bot_api = LineBotApi(os.environ.get("ACCESS_TOKEN"))
+handler = WebhookHandler(os.environ.get("SECRET"))
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -247,122 +299,35 @@ def getsheet():
     records = wk1.get_all_records()
     return records
 
-def query_color_number(color):
-    db_url = os.environ['DATABASE_URL']
-    conn = psycopg2.connect(db_url, sslmode='require')
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM mzd_car WHERE color = '{}'".format(color))
-    color_num = cursor.fetchone()[0]
-    conn.close()
-
-    return color_num
-
-def web_query_car(number):
-    table = []
-    db_url = os.environ['DATABASE_URL']
-    conn = psycopg2.connect(db_url, sslmode='require')
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, color FROM mzd_car WHERE lice = '{}'".format(number))
-    all_data = cursor.fetchall()
-    for data in all_data:
-        if data[1] is None:
-            table.append(["無紀錄", ""])
-        else:
-            table.append([data[0], data[1]])
-    conn.close()
-
-    return table
-
 def query_car(number):
     records = getsheet()
     all_bubble = []
     for data in records:
         if int(data['車號']) == int(number):
-            img_id = data['上傳圖片'].split("=")[-1]
+            img_id = data['顯示照片'].split("=")[-1]
             img_url = "https://drive.google.com/file/d/{}/view".format(img_id)
             rs = requests.get(img_url)
-            print(rs.content)
+            #print(rs.content)
             soup = BeautifulSoup(rs.content, 'html.parser')
             meta = soup.find("meta", property="og:image")
             img_src = meta["content"]
-            print(img_src)
+            #print(img_src)
             if not img_src:
                 return None
-            bubble_msg = bubble.format(img_src=img_src, number=data['車號'], name=data['名稱'], line_id=data['LINE上顯示名稱'], place=data['常出沒地點'])
+            img_src = img_src.replace("=w1200-h630-p", "=w2400")
+            bubble_msg = bubble.format(img_src=img_src, number=data['車號'], name=data['稱號'], line_id=data['Line名稱'], place=data['常出沒地點'])
             all_bubble.append(bubble_msg)
     if all_bubble:
         carousel_msg = carousel.format(bubble=",".join(all_bubble))
         json_final = json.loads(carousel_msg)
-        print(json_final)
+        #print(json_final)
         return json_final
     else:
         return None
 
-def get_color_fullname(color):
-    if "雪" in color and "白" in color:
-        return "躍雪白"
-    elif "極" in color and "白" in color:
-        return "極粹白"
-    elif "極" in color and "灰" in color:
-        return "極境灰"
-    elif "鋼" in color and "灰" in color:
-        return "鋼鐵灰"
-    elif "黑" in color:
-        return "御鉄黑"
-    elif "紅" in color:
-        return "晶艷魂動紅"
-    elif "藍" in color:
-        return "星燦藍"
-    elif "銀" in color:
-        return "飛梭銀"
-    elif "棕" in color:
-        return "鈦金棕"
-    elif "琉光" in color or "光金" in color:
-        return "琉光金"
-    else:
-        return None
-
-def register_car(number, name, color):
-    db_url = os.environ['DATABASE_URL']
-    conn = psycopg2.connect(db_url, sslmode='require')
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
-    all_data = cursor.fetchall()
-    ret = True
-    for data in all_data:
-        if name == data[0]:
-            ret = False
-            break
-    if ret:
-        insert_dat = "INSERT INTO mzd_car (lice, name, color) VALUES ({}, '{}', '{}');".format(number, name, color)
-        cursor.execute(insert_dat)
-        conn.commit()
-        
-    cursor.close()
-    conn.close()
-
-    return ret
-
-def unregister_car(number, name):
-    db_url = os.environ['DATABASE_URL']
-    conn = psycopg2.connect(db_url, sslmode='require')
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM mzd_car WHERE lice = '{}';".format(number))
-    all_data = cursor.fetchall()
-    ret = False
-    for data in all_data:
-        if name == data[0]:
-            ret = True
-            break
-    if ret:
-        insert_dat = "DELETE FROM mzd_car WHERE lice = '{}' AND name = '{}';".format(number, name)
-        cursor.execute(insert_dat)
-        conn.commit()
-        
-    cursor.close()
-    conn.close()
-
-    return ret    
+def register_car():
+    json_final = json.loads(register_msg)
+    return json_final
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -371,25 +336,9 @@ def handle_message(event):
 
     req_msg = str(event.message.text).strip()
         
-    if req_msg.startswith("++") and req_msg[2:6].isnumeric():
-        if ":" not in req_msg or "/" not in req_msg:
-            reply_msg = TextSendMessage(text="註冊車牌格式錯誤. 格式應為:\n++[車號數字四位數]:[車主名]/[車色]\n例如 ++1234:彰化金城武/躍雪白")
-        else:
-            number = req_msg[2:6]
-            pre_msg = req_msg.split("/")[0]
-            color_in = req_msg.split("/")[-1].strip()
-            name = pre_msg.split(":")[-1].strip()
-            color = get_color_fullname(color_in)
-            if color is None:
-                reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車色 {} 無法辨識".format(number, color_in))
-                line_bot_api.reply_message(event.reply_token, reply_msg)
-                return 0
-
-            ret = register_car(number, name, color)
-            if ret:
-                reply_msg = TextSendMessage(text="車牌【{}】註冊成功, 車主:{} 車色:{}".format(number, name, color))
-            else:
-                reply_msg = TextSendMessage(text="車牌【{}】註冊失敗, 車主{}已存在".format(number, name))
+    if req_msg.startswith("++"):
+        ret = register_car()
+        reply_msg = FlexSendMessage('註冊車牌表單', ret)
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
@@ -397,38 +346,14 @@ def handle_message(event):
         number = req_msg[1:5]
         ret = query_car(number)
         if ret is not None:
-            reply_msg = FlexSendMessage('query car result', ret)
+            reply_msg = FlexSendMessage('查詢車牌結果', ret)
         else:
             reply_msg = TextSendMessage(text="查詢車牌【{}】:\n尚無車主註冊".format(number))
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
 
-    if req_msg.startswith("--") and req_msg[2:6].isnumeric():
-        if ":" not in req_msg:
-            reply_msg = TextSendMessage(text="刪除車牌格式錯誤. 格式應為:\n--[車號數字四位數]:[車主名]\n例如 --1234:彰化金城武")
-        else:
-            number = req_msg[2:6]
-            name = req_msg.split(":")[-1].strip()
-            ret = unregister_car(number, name)
-            if ret:
-                reply_msg = TextSendMessage(text="車牌【{}: {}】刪除成功".format(number, name))
-            else:
-                reply_msg = TextSendMessage(text="車牌【{}: {}】刪除失敗, 找不到註冊資料".format(number, name))
-        line_bot_api.reply_message(event.reply_token, reply_msg)
-        return 0
-
-    if req_msg.startswith("!!total"):
-        ret_text = "【已註冊車色統計資料】\n躍雪白:{}\n極粹白:{}\n極境灰:{}\n鋼鐵灰:{}\n御鉄黑:{}\n晶艷魂動紅:{}\n星燦藍:{}\n飛梭銀:{}\n鈦金棕:{}\n琉光金:{}".format(query_color_number("躍雪白"),
-                                                                                                                                                   query_color_number("極粹白"),
-                                                                                                                                                   query_color_number("極境灰"),
-                                                                                                                                                   query_color_number("鋼鐵灰"),
-                                                                                                                                                   query_color_number("御鉄黑"),
-                                                                                                                                                   query_color_number("晶艷魂動紅"),
-                                                                                                                                                   query_color_number("星燦藍"),
-                                                                                                                                                   query_color_number("飛梭銀"),
-                                                                                                                                                   query_color_number("鈦金棕"),
-                                                                                                                                                   query_color_number("琉光金"))
-        reply_msg = TextSendMessage(text=ret_text)
+    if req_msg == ("機器人說明?") or req_msg == ("機器人說明？"):
+        reply_msg = TextSendMessage(text="輸入 '++' 開始註冊車號\n輸入 'C[車號四位數]'查詢已註冊車友, 例如'C6576'\n如重複填表單造成多筆資料或需要更改資料, 請找阿嘎Curtis協助")
         line_bot_api.reply_message(event.reply_token, reply_msg)
         return 0
         
